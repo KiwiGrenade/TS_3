@@ -30,6 +30,7 @@ def get_div_rem(data: str):
 
 
 def crc(data: str):
+    # add zeros
     data += "0" * (len(GEN) - 1)
     return get_div_rem(data)
 
@@ -41,31 +42,36 @@ def encode(data: str, max_datasize=32):
     while i < len(data):
         #
         cur = data[i: i + max_datasize]
+        # append div_rem to data
         cur += crc(cur)
-        cur_frame = ""
-        ones = 0
-        for c in cur:
-            if ones == 5:
-                ones = 0
-                cur_frame += '0'
-            if c == '1':
-                ones += 1
-            else:
-                ones = 0
-            cur_frame += c
+        frame_with_zeros = add_zeros(cur)
 
-        frames.append(FLAG + cur_frame + FLAG)
+        frames.append(FLAG + frame_with_zeros + FLAG)
         i += max_datasize
 
     return "".join(frames)
 
+def add_zeros(frame:str):
+    no_zero_frame = ""
+    ones = 0
+    # add 0 after every fifth 1
+    for c in frame:
+        if ones == 5:
+            ones = 0
+            no_zero_frame += '0'
+        if c == '1':
+            ones += 1
+        else:
+            ones = 0
+        no_zero_frame += c
+    return no_zero_frame
 
 def remove_zeros(frame: str):
     i = 0
     ones = 0
-    data = ""
+    zero_frame = ""
     while i < len(frame):
-        data += frame[i]
+        zero_frame += frame[i]
         if frame[i] == "1":
             ones += 1
             if ones == 5:
@@ -74,7 +80,7 @@ def remove_zeros(frame: str):
         else:
             ones = 0
         i += 1
-    return data
+    return zero_frame
 
 
 def decode(data: str):
