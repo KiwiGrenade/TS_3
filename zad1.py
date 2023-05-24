@@ -15,32 +15,38 @@ def get_xor(x: str):
 
 
 def get_div_rem(data: str):
-    next = len(GEN)
-    rem = data[:next]
-    while next <= len(data):
+    dividend_end = len(GEN)
+    # get data splice
+    rem = data[:dividend_end]
+    
+    # w
+    while dividend_end <= len(data):
+        # rem = 101, -> rem = rem xor GEN
         if rem[0] == "1":
             rem = get_xor(rem)
         else:
+            # rem = 0101 -> rem = 101
             rem = rem[1:]
-        if next == len(data):
+        if dividend_end == len(data):
             break
-        rem += data[next]
-        next += 1
+        rem += data[dividend_end]
+        dividend_end += 1
     return rem
 
 
 def crc(data: str):
     # add zeros
     data += "0" * (len(GEN) - 1)
-    return get_div_rem(data)
+    div_rem = get_div_rem(data)
+    return div_rem
 
 
 def encode(data: str, max_datasize=32):
     frames = []
     i = 0
-
+    j = 0
     while i < len(data):
-        #
+        # get data splice
         cur = data[i: i + max_datasize]
         # append div_rem to data
         cur += crc(cur)
@@ -48,7 +54,9 @@ def encode(data: str, max_datasize=32):
 
         frames.append(FLAG + frame_with_zeros + FLAG)
         i += max_datasize
+        j+=1
 
+    print("Number of encoded frames: ", j)
     return "".join(frames)
 
 def add_zeros(frame:str):
@@ -87,7 +95,9 @@ def decode(data: str):
     # remove flags, create list of data
     frames = list(filter(None, data.split(FLAG)))
     decoded = []
+    i = 0
     for frame in frames:
+        i+=1
         current = remove_zeros(frame)
 
         # frame divided by gen has a reminder - frame is dysfunctional
@@ -97,7 +107,7 @@ def decode(data: str):
             # cut the last len(gen) - 1 bits
             current = current[:-(len(GEN) - 1)]
             decoded.append(current)
-
+    print("Number of decoded frames: ", i)
     return "".join(decoded)
 
 
@@ -132,5 +142,5 @@ def decode_files(source: str, target: str):
 
 
 if __name__ == '__main__':
-    create_files("Z.txt", "W.txt")
+    # create_files("Z.txt", "W.txt")
     decode_files("W.txt", "G.txt")
